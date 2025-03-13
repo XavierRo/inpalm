@@ -1,22 +1,22 @@
-﻿Year, Month,Fertilization_type,Quantity,Composition,Placement
-2008, May,Mineral,75,Urea,In the circle buried
-2008,June,Organic,25,Compost,In the circle
-2008,July,Mineral,100,Urea,In the circle buried
-2009,January,Mineral,15,Urea,In the circle buried
-2009,June,Mineral,200,Urea,In the circle buried
-2009, August,Organic,30,Compost,In the circle
-2010,January,Mineral,300,Urea,In the circle buried
-2010,May,Mineral,400,Urea,In the circle buried
-2010,September,Organic,20,EFB,In the circle
-2011,January,Mineral,750,Urea,In the circle buried
-2011,June,Mineral,750,Urea,In the circle buried
-2011,September,Organic,30,EFB,In the circle
-2011,December,Mineral,750,Urea,In the circle buried
-2012,June,Mineral,750,Urea,In the circle buried
-2013,February,Mineral,500,Urea,In the circle buried
-2013,June,Mineral,500,Urea,In the circle buried
-2013,September,Organic,30,EFB,In the circle
-2014,February,Mineral,500,Urea,In the circle buried
-2014,June,Mineral,500,Urea,In the circle buried
-2015,May,Mineral,500,Urea,In the circle buried
-2015,July,Mineral,500,Urea,In the circle buried
+﻿Year,Month,Fertilization_type,Quantity,Unit (per ha),Composition,Placement
+2008,May,Mineral,10.7,Kg,Urea,In the circle buried
+2008,June,Organic,25,tFM,Compost,In the circle
+2008,July,Mineral,14.3,Kg,Urea,In the circle buried
+2009,January,Mineral,2.1,Kg,Urea,In the circle buried
+2009,June,Mineral,28.6,Kg,Urea,In the circle buried
+2009,August,Organic,30,tFM,Compost,In the circle
+2010,January,Mineral,43.9,Kg,Urea,In the circle buried
+2010,May,Mineral,57.2,Kg,Urea,In the circle buried
+2010,September,Organic,20,tFM,Compost,In the circle
+2011,January,Mineral,107.2,Kg,Urea,In the circle buried
+2011,June,Mineral,107.2,Kg,Urea,In the circle buried
+2011,September,Organic,30,tFM,Compost,In the circle
+2011,December,Mineral,107.2,Kg,Urea,In the circle buried
+2012,June,Mineral,107.2,Kg,Urea,In the circle buried
+2013,February,Mineral,71.5,Kg,Urea,In the circle + windrow
+2013,June,Mineral,71.5,Kg,Urea,In the circle + windrow
+2013,September,Organic,30,tFM,Compost,In the circle
+2014,February,Mineral,71.5,Kg,Urea,In the circle + windrow
+2014,June,Mineral,71.5,Kg,Urea,In the circle + windrow
+2015,May,Mineral,71.5,Kg,Urea,In the circle + windrow
+2015,July,Mineral,71.5,Kg,Urea,In the circle + windrow
