@@ -1,9 +1,9 @@
 ﻿Year,Yield (tFFB/ha/year),Understorey_biomass,Legume_fraction,Pruned_frond,Atmospheric_deposition
-2008,0,Very high,Medium,Exported,18
-2009,0,Very high,Medium,Exported,18
-2010,2,High,Medium,Exported,18
-2011,4,High,Medium,Exported,18
-2012,6,Low,Medium,Exported,18
-2013,12,Low,Medium,Exported,18
-2014,8,Low,Medium,Exported,18
-2015,20,Low,Low,Exported,18
+2008,0,Very high,High,In windrows,18
+2009,0,Very high,High,In windrows,18
+2010,2,High,Medium,In windrows,18
+2011,4,High,Medium,In windrows,18
+2012,6,Low,Medium,In windrows,18
+2013,12,Low,Medium,In windrows,18
+2014,8,Low,Medium,In windrows,18
+2015,20,Low,Low,In windrows,18
