@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 
 
 #Fonction pour la lecture des fichiers données par utilisateurs
@@ -11,6 +12,11 @@ def Reading_data():
         while not Field_caracteristic_input.lower().endswith('.csv') :
             print("Error! The file must be a valid CSV file.")
             Field_caracteristic_input = input("Please indicate the csv file with the field characteristics\n")
+        #Vérifie que le fichier est bien à l'emplacement indiqué
+        while not os.path.exists(Field_caracteristic_input):
+            print(f"Error! The file '{Field_caracteristic_input}' does not exist at the specified location.")
+            Field_caracteristic_input = input("Please indicate the csv file with the field characteristics\n")
+        # Intégration du fichier dans une variable
         #Intégration du fichier dans une variable
         Field_caracteristic=pd.read_csv(Field_caracteristic_input)
 
@@ -19,6 +25,10 @@ def Reading_data():
         # Vérification que le fichier soit bien un fichier csv
         while not Year_data_input.lower().endswith('.csv'):
             print("Error! The file must be a valid CSV file.")
+            Year_data_input = input("Please indicate the csv file with the years informations\n")
+        # Vérifie que le fichier est bien à l'emplacement indiqué
+        while not os.path.exists(Year_data_input):
+            print(f"Error! The file '{Year_data_input}' does not exist at the specified location.")
             Year_data_input = input("Please indicate the csv file with the years informations\n")
         #Intégration du fichier dans une variable
         Year_data= pd.read_csv(Year_data_input)
@@ -29,6 +39,10 @@ def Reading_data():
         while not Fertilization_data_input.lower().endswith('.csv'):
             print("Error! The file must be a valid CSV file.")
             Fertilization_data_input = input("Please indicate the csv file with the fertilization informations\n")
+        # Vérifie que le fichier est bien à l'emplacement indiqué
+        while not os.path.exists(Fertilization_data_input):
+            print(f"Error! The file '{Fertilization_data_input}' does not exist at the specified location.")
+            Fertilization_data_input = input("Please indicate the csv file with the fertilization informations\n")
         # Intégration du fichier dans une variable
         Fertilization_data=pd.read_csv(Fertilization_data_input)
 
@@ -38,6 +52,10 @@ def Reading_data():
         # Vérification que le fichier soit bien un fichier csv
         while not Rainfall_data_input.lower().endswith('.csv'):
             print("Error! The file must be a valid CSV file.")
+            Rainfall_data_input = input("Please indicate the csv file with the rainfall informations\n")
+        # Vérifie que le fichier est bien à l'emplacement indiqué
+        while not os.path.exists(Rainfall_data_input):
+            print(f"Error! The file '{Rainfall_data_input}' does not exist at the specified location.")
             Rainfall_data_input = input("Please indicate the csv file with the rainfall informations\n")
         # Intégration du fichier dans une variable
         Rainfall_data=pd.read_csv(Rainfall_data_input)
