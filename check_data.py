@@ -1,6 +1,6 @@
 #Librairie
 import pandas as pd
-from Reading_data import Reading_data
+from reading_data import reading_data
 
 
 #Variable contenant les entêtes pour chaque type de fichier
@@ -25,12 +25,12 @@ Mineral_Nitrogen_Placement = ["In the circle buried", "In the circle not buried"
 
 
 # Appeler la fonction Reading_data
-Field_caracteristic, Year_data, Fertilization_data, Rainfall_data = Reading_data()
+Field_caracteristic, Year_data, Fertilization_data, Rainfall_data = reading_data()
 
 
 
 #Fonction de vérification des fichiers fournit par l'utilisateur
-def File_type(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
+def file_type(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
 
     #Création de variable récupérant dans une liste les entêtes de chaque fichier donnée par l'utilisateur
     header_field=Field_caracteristic.columns.tolist()
@@ -66,15 +66,14 @@ def File_type(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
 
 
 #Fonction vérification que les données utilisateurs soient bien ceux de la liste définit sortie des tableaux d'erreurs
-def Data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data):
+def data_type(Field_caracteristic, Year_data, Fertilization_data):
 
     #Création des variables qui contiendront les tableaux erreurs
     Error_field_list_data=[]
     Error_year_list_data = []
     Error_fertilization_list_data = []
-    Error_rain_list_data = []
 
-    #Vérification des liste présent dans  Field_caracteristic
+    #Vérification des listes présentes dans  Field_caracteristic
     Error_texture=Field_caracteristic[~Field_caracteristic["Texture"].isin(Texture)]
     Error_previous_palm=Field_caracteristic[~Field_caracteristic["Previous_palm"].isin(Previous_palm)]
     Error_terraces=Field_caracteristic[~Field_caracteristic["Terraces"].isin(Terraces)]
@@ -108,25 +107,29 @@ def Data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
         if row['Fertilization_type']=='Mineral':
             #Ajout si pas dans la liste prédéfinie
             if row['Composition'] not in Mineral_Nitrogen_type:
-                Error_year_list_data.append({'Number column': i + 2, 'Title Columns': 'Composition', 'Error Value': row["Composition"]})
+                Error_fertilization_list_data.append({'Number column': i + 2, 'Title Columns': 'Composition', 'Error Value': row["Composition"]})
             # Vérification du placement minéral
             if row['Placement'] not in Mineral_Nitrogen_Placement:
-                Error_year_list_data.append({'Number column': i + 2, 'Title Columns': 'Placement', 'Error Value': row["Placement"]})
+                Error_fertilization_list_data.append({'Number column': i + 2, 'Title Columns': 'Placement', 'Error Value': row["Placement"]})
         elif row['Fertilization_type'] == 'Organic':
             # Vérification de la composition organique
             if row['Composition'] not in Organic_fertilizer_type:
-                Error_year_list_data.append(
+                Error_fertilization_list_data.append(
                     {'Number column': i + 2, 'Title Columns': 'Composition', 'Error Value': row["Composition"]})
             # Vérification du placement organique
             if row['Placement'] not in Organic_fertilizer_Placement:
-                Error_year_list_data.append(
+                Error_fertilization_list_data.append(
                     {'Number column': i + 2, 'Title Columns': 'Placement', 'Error Value': row["Placement"]})
         else:
-            # Si le type de fertilisation est invalide A modifier
-            print(f"Invalid Fertilization_type at row {i + 2}. Please verify your Fertilization_type column.")
+            # Si le type de fertilisation est invalide
+            Error_fertilization_list_data.append(
+                {'Number column': i + 2, 'Title Columns': 'Fertilization_type', 'Error Value': 'Invalid fertilization type'})
     # Création du tableau avec les erreurs présent dans le fichier Field-caracteristic
-    Error_fertilization_df = pd.DataFrame(Error_year_list_data)
-    print(Error_fertilization_df)
+    Error_fertilization_df = pd.DataFrame(Error_fertilization_list_data)
+
+    return Error_field_df,Error_year_df,Error_fertilization_df
+
+#def equalup0():
 
 
 
@@ -146,7 +149,7 @@ def Data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
     #Index_Year_error.extend(Year_data[~Year_data])
 
 
-Data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
+data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
 
 #File_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
 

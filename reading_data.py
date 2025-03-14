@@ -4,7 +4,7 @@ import os
 
 #Fonction pour la lecture des fichiers données par utilisateurs
 #Modification pour récupération des infos via interface
-def Reading_data():
+def reading_data():
     try:
         #Récupération et lecture du fichier caractéristique de la parcelle
         Field_caracteristic_input=input("Please indicated the csv file with the field characteristics\n")
@@ -66,7 +66,7 @@ def Reading_data():
         print(f'Error! Please provide an csv file : {error}')
         return None,None, None, None
 
-#Reading_data()
+#reading_data()
 
 
 
