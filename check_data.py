@@ -20,6 +20,8 @@ Organic_fertilizer_type = ["EFB", "Compost"]
 Organic_fertilizer_Placement = ["In the circle", "In the harvesting path", "Spread(anti erosion)"]
 Mineral_Nitrogen_type =["Ammonium Sulfate", "Urea", "Ammonium Chloride", "Ammonium Nitrate", "Sodium Nitrate"]
 Mineral_Nitrogen_Placement = ["In the circle buried", "In the circle not buried", "In the circle + windrow", "Evenly distributed"]
+#Liste mois pour vérification
+Month_data = ["January","February","March","April","May","June","July","August","September","November","December"]
 
 
 
@@ -66,12 +68,19 @@ def file_type(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
 
 
 #Fonction vérification que les données utilisateurs soient bien ceux de la liste définit sortie des tableaux d'erreurs
-def data_type(Field_caracteristic, Year_data, Fertilization_data):
+def data_type(Field_caracteristic, Year_data, Fertilization_data,Rainfall_data):
 
-    #Création des variables qui contiendront les tableaux erreurs
+    #Création des variables qui contiendront types d'erreurs
     Error_field_list_data=[]
     Error_year_list_data = []
     Error_fertilization_list_data = []
+    Error_rain_list_data=[]
+
+    #Création des variables qui contiendront les tableaux d'erreurs
+    Error_field_df=[]
+    Error_year_df=[]
+    Error_fertilization_df=[]
+    Error_rain_df=[]
 
     #Vérification des listes présentes dans  Field_caracteristic
     Error_texture=Field_caracteristic[~Field_caracteristic["Texture"].isin(Texture)]
@@ -102,6 +111,12 @@ def data_type(Field_caracteristic, Year_data, Fertilization_data):
         Error_year_df = pd.DataFrame(Error_year_list_data)
 
     # Vérification des listes présentes dans Fertilization_data
+    #Contrôle du mois
+    Error_month=Fertilization_data[~Fertilization_data["Month"].isin(Month_data)]
+    for i, row in Error_month.iterrows():
+        Error_fertilization_list_data.append(
+        {'Number column': i + 2, 'Title Columns': 'Month', 'Error Value': 'Invalid month data'})
+    #Contrôle pour le type de fertilisation
     for i,row in Fertilization_data.iterrows():
         #Cas de la fertilisation de type minéral
         if row['Fertilization_type']=='Mineral':
@@ -127,9 +142,35 @@ def data_type(Field_caracteristic, Year_data, Fertilization_data):
     # Création du tableau avec les erreurs présent dans le fichier Field-caracteristic
     Error_fertilization_df = pd.DataFrame(Error_fertilization_list_data)
 
-    return Error_field_df,Error_year_df,Error_fertilization_df
+    #Vérification du mois dans Rainfall_data
+    # Vérification des listes présentes dans  Field_caracteristic
+    Error_Month = Rainfall_data[~Rainfall_data["Month"].isin(Month_data)]
+    # Ajout des erreurs pour chaque colonne spécifique
+    for i, row in Error_Month.iterrows():
+        Error_rain_list_data.append(
+            {'Number column': i + 2, 'Title Columns': 'Month', 'Error Value': "Invalid month data"})
+    # Création du tableau avec les erreurs présent dans le fichier Field-caracteristic
+    Error_rain_df = pd.DataFrame(Error_Month)
 
-#def equalup0():
+    return Error_field_df,Error_year_df,Error_fertilization_df,Error_rain_df
+
+#Vérification que les données soit bien des
+def int_data(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
+
+    #Variable permettant de récupérer les informations erreurs
+    int_error_fielddata=[]
+    int_error_yeardata=[]
+    int_error_fertilizationdata=[]
+    int_error_raindata=[]
+
+    #Variable permettant crée un tableau avec la localisation des erreurs
+    int_error_fielddata_df=[]
+
+
+    for i,value in Field_caracteristic["Year_planting"].iteritems():
+        if i<0:
+            int_error_fielddata.append( {'Number column': i + 2, 'Title Columns': 'Year planting', 'Error Value': "Invalid type number"})
+            print(int_error_fielddata)
 
 
 
@@ -148,10 +189,11 @@ def data_type(Field_caracteristic, Year_data, Fertilization_data):
     #Vérification des Year_data
     #Index_Year_error.extend(Year_data[~Year_data])
 
+#file_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
+#data_type(Field_caracteristic, Year_data, Fertilization_data)
+int_data(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data)
 
-data_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
 
-#File_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
 
 #fonction test: ./Example_File/Year_Field_data_example.csv
 #C:\Users\svrignon\Desktop\programme\CSV_data\Essai\Field_caracteristics_example.csv
