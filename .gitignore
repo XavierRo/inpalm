@@ -1,0 +1,74 @@
+# 🐍 Fichiers et dossiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+
+# 📦 Environnements virtuels
+venv/
+.env/
+.envrc
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 📜 Dépendances
+requirements.txt
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# ⚙️ Config VS Code
+.vscode/
+.settings/
+
+# 🐳 Docker
+*.tar
+*.log
+docker-compose.override.yml
+.env.docker
+
+# 🛠️ Logs et fichiers temporaires
+*.log
+*.out
+*.pid
+*.swp
+*.swo
+*.bak
+
+# 🛑 Jupyter Notebook
+.ipynb_checkpoints/
+
+# 📂 PyCharm
+.idea/
+*.iml
+
+# 🔍 Tests et coverage
+.coverage
+htmlcov/
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+coverage.xml
+*.mo
+*.pot
+
+# 🔍 MyPy / Type Checking
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# 🏗️ Build / Distribution
+build/
+dist/
+*.whl
+*.manifest
+*.spec
+
+# 🔐 Clés et certificats (ajoute ton propre `.env` si nécessaire)
+*.pem
+*.key

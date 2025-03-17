@@ -1,7 +1,7 @@
 #Librairie
 import pandas as pd
-from reading_data import reading_data
-
+from exception.InPalmException import InPalmException
+from exception import InPalmException
 
 #Variable contenant les entêtes pour chaque type de fichier
 Header_Field_caracteristic=['Field_name','Localisation','Year_planting','End_field','Slope','Texture','Organic_Carbon','Initial_soil_water','Previous_palm','Terraces']
@@ -24,47 +24,22 @@ Mineral_Nitrogen_Placement = ["In the circle buried", "In the circle not buried"
 Month_data = ["January","February","March","April","May","June","July","August","September","November","December"]
 
 
-
-
-# Appeler la fonction Reading_data
-Field_caracteristic, Year_data, Fertilization_data, Rainfall_data = reading_data()
-
-
-
-#Fonction de vérification des fichiers fournit par l'utilisateur
-def file_type(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
-
-    #Création de variable récupérant dans une liste les entêtes de chaque fichier donnée par l'utilisateur
-    header_field=Field_caracteristic.columns.tolist()
-    header_year=Year_data.columns.tolist()
-    header_fertilization=Fertilization_data.columns.tolist()
-    header_rainfall= Rainfall_data.columns.tolist()
-
+def file_type_verification(dataframe, heardlist):
+    """
+    Méthode de verification des headers
+    :param dataframe: dataframe
+    :param heardlist: listes des noms de colonnes attendu
+    :param error_message:
+    :return:
+    """
     #Vérification que les entêtes correspondent
     #Caracterististique parcelle
-    if header_field != Header_Field_caracteristic:
-        print("Please use the same format as Field_caracteristics_example.csv file.\n"
-              "Please modify your file and restart the program ")
-        exit()
-
-    #Données annuelles
-    if header_year != Header_Year_data:
-        print("Please use the same format as Year_Field_data_example.csv file.\n"
-              "Please modify your file and restart the program ")
-        exit()
-
-    #Données fertilisation
-    if header_fertilization != Header_Fertilization_data:
-        print("Please use the same format as Fertilization_data_example.csv file.\n"
-              "Please modify your file and restart the program ")
-        exit()
-
-    #Données pluviométrie
-    if header_rainfall != Header_Rainfall_data:
-        print("Please use the same format as Rainfall_data_example.csv file.\n"
-              "Please modify your file and restart the program ")
-        exit()
-
+    if dataframe.columns.tolist() != heardlist:
+        error_message = f"Les entetes doivent être {heardlist}"
+        print(error_message)
+        raise InPalmException(error_message)
+    else:
+        print(f"les entetes du dataframe \n {dataframe.head(5)} \n sont ok")
 
 
 #Fonction vérification que les données utilisateurs soient bien ceux de la liste définit sortie des tableaux d'erreurs
@@ -191,7 +166,7 @@ def int_data(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data):
 
 #file_type(Field_caracteristic, Year_data, Fertilization_data, Rainfall_data)
 #data_type(Field_caracteristic, Year_data, Fertilization_data)
-int_data(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data)
+#int_data(Field_caracteristic,Year_data,Fertilization_data,Rainfall_data)
 
 
 
