@@ -7,6 +7,12 @@ __pycache__/
 *.egg-info/
 *.egg
 
+#alembic
+alembic/
+
+#front
+node_modules/
+
 # 📦 Environnements virtuels
 venv/
 .env/
