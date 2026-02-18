@@ -23,7 +23,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # 📜 Dépendances
-backend/requirements.txt
 Pipfile
 Pipfile.lock
 poetry.lock
