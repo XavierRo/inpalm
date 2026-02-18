@@ -6,6 +6,7 @@ __pycache__/
 *.pdb
 *.egg-info/
 *.egg
+.env
 
 #alembic
 alembic/
@@ -22,7 +23,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # 📜 Dépendances
-requirements.txt
+backend/requirements.txt
 Pipfile
 Pipfile.lock
 poetry.lock
