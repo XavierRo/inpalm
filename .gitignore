@@ -11,6 +11,9 @@ __pycache__/
 #alembic
 alembic/
 
+# pour ne pas avoir de pb a
+scripts/*.sh
+
 #front
 node_modules/
 
