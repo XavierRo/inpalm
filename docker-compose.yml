@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: nbalance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nbalance}
+      POSTGRES_USER: ${POSTGRES_USER:-nbalance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nbalance_dev}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nbalance}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: nbalance-api:${TAG:-latest}
+    build:
+      context: ./backend
+    container_name: nbalance-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-nbalance}:${POSTGRES_PASSWORD:-nbalance_dev}@db:5432/${POSTGRES_DB:-nbalance}
+      DATABASE_URL_SYNC: postgresql://${POSTGRES_USER:-nbalance}:${POSTGRES_PASSWORD:-nbalance_dev}@db:5432/${POSTGRES_DB:-nbalance}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  front:
+    image: nbalance-front:${TAG:-latest}
+    build:
+      context: ./frontend
+    container_name: nbalance-front
+    restart: unless-stopped
+    ports:
+      - "${FRONT_PORT:-80}:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

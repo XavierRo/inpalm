@@ -1,0 +1,151 @@
+# =============================================================================
+# NBalance — GitLab CI/CD
+#
+# Pipeline :
+#   1. test     → Lint / tests backend et frontend
+#   2. build    → Build des images Docker
+#   3. deploy   → Déploiement sur le serveur de dev
+#
+# Le runner Shell tourne directement sur le serveur de dev,
+# donc les images sont construites et déployées localement.
+# =============================================================================
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  TAG: "${CI_COMMIT_SHORT_SHA}"
+  PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
+  NPM_CONFIG_CACHE: "${CI_PROJECT_DIR}/.cache/npm"
+
+cache:
+  paths:
+    - .cache/pip
+    - .cache/npm
+    - frontend/node_modules
+
+# -----------------------------------------------------------------------------
+# STAGE : test
+# -----------------------------------------------------------------------------
+
+test:backend:
+  stage: test
+  script:
+    - cd backend
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - pip install -r requirements.txt --quiet
+    - python -m py_compile app/main.py
+    - python -m py_compile app/config.py
+    - python -m py_compile app/database.py
+    - python -m py_compile app/models/__init__.py
+    - python -m py_compile app/services/n_balance/engine.py
+    # Décommentez quand vous aurez des tests :
+    # - pytest tests/ -v
+  rules:
+    - changes:
+        - backend/**/*
+
+test:frontend:
+  stage: test
+  script:
+    - cd frontend
+    - npm ci --prefer-offline
+    - npm run build
+  rules:
+    - changes:
+        - frontend/**/*
+
+# -----------------------------------------------------------------------------
+# STAGE : build
+# -----------------------------------------------------------------------------
+
+build:api:
+  stage: build
+  script:
+    - bash scripts/build-api.sh ${TAG}
+    # Garder aussi le tag latest
+    - docker tag nbalance-api:${TAG} nbalance-api:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - backend/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+build:front:
+  stage: build
+  script:
+    - bash scripts/build-front.sh ${TAG}
+    - docker tag nbalance-front:${TAG} nbalance-front:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - frontend/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# -----------------------------------------------------------------------------
+# STAGE : deploy
+# -----------------------------------------------------------------------------
+
+deploy:db:
+  stage: deploy
+  script:
+    - bash scripts/deploy-db.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      when: manual
+      allow_failure: true
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+      allow_failure: true
+  environment:
+    name: development
+    url: http://${DEV_SERVER_HOST:-localhost}:${DB_PORT:-5432}
+
+deploy:api:
+  stage: deploy
+  script:
+    - bash scripts/deploy-api.sh ${TAG}
+  needs:
+    - job: build:api
+      optional: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - backend/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+  environment:
+    name: development
+    url: http://${DEV_SERVER_HOST:-localhost}:${API_PORT:-8000}/docs
+
+deploy:front:
+  stage: deploy
+  script:
+    - bash scripts/deploy-front.sh ${TAG}
+  needs:
+    - job: build:front
+      optional: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - frontend/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+  environment:
+    name: development
+    url: http://${DEV_SERVER_HOST:-localhost}:${FRONT_PORT:-80}
+
+# Job pour tout déployer d'un coup (déclenchement manuel)
+deploy:all:
+  stage: deploy
+  script:
+    - bash scripts/deploy-all.sh ${TAG}
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+  environment:
+    name: development
+    url: http://${DEV_SERVER_HOST:-localhost}:${FRONT_PORT:-80}
