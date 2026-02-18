@@ -15,7 +15,7 @@ node_modules/
 
 # 📦 Environnements virtuels
 venv/
-.env/
+.env.sample/
 .envrc
 .venv/
 pip-log.txt
