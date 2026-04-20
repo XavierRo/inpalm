@@ -143,29 +143,22 @@ async def calc_n_palm_uptake(
     """
     intermediates = {"method": method}
 
-    # Récupérer les paramètres pour cette tranche d'âge
-    stmt = select(PalmNUptakeParam).where(
-        PalmNUptakeParam.age_min <= palm_age,
-        PalmNUptakeParam.age_max >= palm_age,
-    )
+    # Récupérer les paramètres pour cet âge (palm_age exact)
+    stmt = select(PalmNUptakeParam).where(PalmNUptakeParam.palm_age == palm_age)
     result = await db.execute(stmt)
     uptake_param = result.scalar_one_or_none()
 
     yield_tffb = year_data.yield_tffb_ha or 0.0
 
     if uptake_param:
-        n_per_tffb = uptake_param.n_per_tffb
-        veg_demand = uptake_param.vegetative_n_demand or 0.0
+        # TODO: calcul fuzzy réel (step4_palm_uptake) — placeholder linéaire
+        mid_uptake = (uptake_param.n_uptake_low + uptake_param.n_uptake_high) / 2.0
+        n_uptake = mid_uptake
     else:
-        # Fallback : valeurs typiques palmier à huile
-        n_per_tffb = 7.0  # kg N par tonne FFB
-        veg_demand = 30.0  # kg N/ha/an demande végétative
-
-    n_uptake = yield_tffb * n_per_tffb + veg_demand
+        # Fallback : valeur typique palmier à huile
+        n_uptake = 80.0  # kg N/ha/an
 
     intermediates["yield_tffb_ha"] = yield_tffb
-    intermediates["n_per_tffb"] = n_per_tffb
-    intermediates["vegetative_n_demand"] = veg_demand
     intermediates["palm_age"] = palm_age
     intermediates["n_uptake"] = n_uptake
 

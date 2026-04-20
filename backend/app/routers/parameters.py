@@ -10,10 +10,12 @@ from app.models.parameters import (
     VolatilizationParam,
     EmissionFactor,
     LeachingParam,
-    FuzzyMembership,
-    FuzzyRule,
     PalmNUptakeParam,
     CalculationMethod,
+    FuzzyModule,
+    FuzzyFactor,
+    FuzzyRule,
+    FuzzyNominalConversion,
 )
 from app.schemas.parameters import (
     FertilizerPropertyCreate,
@@ -28,16 +30,18 @@ from app.schemas.parameters import (
     LeachingParamCreate,
     LeachingParamUpdate,
     LeachingParamRead,
-    FuzzyMembershipCreate,
-    FuzzyMembershipUpdate,
-    FuzzyMembershipRead,
-    FuzzyRuleCreate,
-    FuzzyRuleRead,
     PalmNUptakeParamCreate,
     PalmNUptakeParamUpdate,
     PalmNUptakeParamRead,
     CalculationMethodCreate,
     CalculationMethodRead,
+    FuzzyModuleRead,
+    FuzzyFactorRead,
+    FuzzyFactorUpdate,
+    FuzzyRuleRead,
+    FuzzyRuleUpdate,
+    FuzzyNominalConversionRead,
+    FuzzyNominalConversionUpdate,
 )
 
 router = APIRouter(prefix="/api/parameters", tags=["Parameters"])
@@ -204,38 +208,49 @@ async def update_leaching_param(
     return obj
 
 
-# ===================== Fuzzy Membership =====================
+# ===================== Fuzzy Modules (lecture seule) =====================
 
 
-@router.get("/fuzzy/membership", response_model=list[FuzzyMembershipRead])
-async def list_fuzzy_memberships(db: AsyncSession = Depends(get_db)):
-    stmt = select(FuzzyMembership).order_by(
-        FuzzyMembership.variable_name, FuzzyMembership.linguistic_value
-    )
+@router.get("/fuzzy/modules", response_model=list[FuzzyModuleRead])
+async def list_fuzzy_modules(db: AsyncSession = Depends(get_db)):
+    stmt = select(FuzzyModule).order_by(FuzzyModule.step, FuzzyModule.module_code)
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
-@router.post("/fuzzy/membership", response_model=FuzzyMembershipRead)
-async def create_fuzzy_membership(
-    data: FuzzyMembershipCreate, db: AsyncSession = Depends(get_db)
-):
-    obj = FuzzyMembership(**data.model_dump())
-    db.add(obj)
-    await db.flush()
-    await db.refresh(obj)
-    return obj
-
-
-@router.put("/fuzzy/membership/{item_id}", response_model=FuzzyMembershipRead)
-async def update_fuzzy_membership(
-    item_id: int, data: FuzzyMembershipUpdate, db: AsyncSession = Depends(get_db)
-):
-    stmt = select(FuzzyMembership).where(FuzzyMembership.id == item_id)
+@router.get("/fuzzy/modules/{module_code}", response_model=FuzzyModuleRead)
+async def get_fuzzy_module(module_code: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(FuzzyModule).where(FuzzyModule.module_code == module_code)
     result = await db.execute(stmt)
     obj = result.scalar_one_or_none()
     if not obj:
-        raise HTTPException(status_code=404, detail="Membership non trouvée")
+        raise HTTPException(status_code=404, detail="Module fuzzy non trouvé")
+    return obj
+
+
+# ===================== Fuzzy Factors (limites F/U paramétrables) =====================
+
+
+@router.get("/fuzzy/factors", response_model=list[FuzzyFactorRead])
+async def list_fuzzy_factors(
+    module_code: str | None = None, db: AsyncSession = Depends(get_db)
+):
+    stmt = select(FuzzyFactor).order_by(FuzzyFactor.module_code, FuzzyFactor.factor_order)
+    if module_code:
+        stmt = stmt.where(FuzzyFactor.module_code == module_code)
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.put("/fuzzy/factors/{item_id}", response_model=FuzzyFactorRead)
+async def update_fuzzy_factor(
+    item_id: int, data: FuzzyFactorUpdate, db: AsyncSession = Depends(get_db)
+):
+    stmt = select(FuzzyFactor).where(FuzzyFactor.id == item_id)
+    result = await db.execute(stmt)
+    obj = result.scalar_one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Facteur fuzzy non trouvé")
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(obj, key, value)
     await db.flush()
@@ -243,36 +258,66 @@ async def update_fuzzy_membership(
     return obj
 
 
-# ===================== Fuzzy Rules =====================
+# ===================== Fuzzy Rules (conclusion paramétrable) =====================
 
 
 @router.get("/fuzzy/rules", response_model=list[FuzzyRuleRead])
-async def list_fuzzy_rules(db: AsyncSession = Depends(get_db)):
-    stmt = select(FuzzyRule).order_by(FuzzyRule.rule_set_name)
+async def list_fuzzy_rules(
+    module_code: str | None = None, db: AsyncSession = Depends(get_db)
+):
+    stmt = select(FuzzyRule).order_by(FuzzyRule.module_code, FuzzyRule.rule_number)
+    if module_code:
+        stmt = stmt.where(FuzzyRule.module_code == module_code)
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
-@router.post("/fuzzy/rules", response_model=FuzzyRuleRead)
-async def create_fuzzy_rule(
-    data: FuzzyRuleCreate, db: AsyncSession = Depends(get_db)
+@router.put("/fuzzy/rules/{item_id}", response_model=FuzzyRuleRead)
+async def update_fuzzy_rule(
+    item_id: int, data: FuzzyRuleUpdate, db: AsyncSession = Depends(get_db)
 ):
-    obj = FuzzyRule(**data.model_dump())
-    db.add(obj)
+    stmt = select(FuzzyRule).where(FuzzyRule.id == item_id)
+    result = await db.execute(stmt)
+    obj = result.scalar_one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Règle fuzzy non trouvée")
+    obj.conclusion = data.conclusion
     await db.flush()
     await db.refresh(obj)
     return obj
 
 
-@router.delete("/fuzzy/rules/{item_id}")
-async def delete_fuzzy_rule(item_id: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(FuzzyRule).where(FuzzyRule.id == item_id)
+# ===================== Fuzzy Nominal Conversions (valeur numérique paramétrable) =====================
+
+
+@router.get("/fuzzy/nominal-conversions", response_model=list[FuzzyNominalConversionRead])
+async def list_fuzzy_nominal_conversions(
+    module_code: str | None = None, db: AsyncSession = Depends(get_db)
+):
+    stmt = select(FuzzyNominalConversion).order_by(
+        FuzzyNominalConversion.module_code,
+        FuzzyNominalConversion.factor_name,
+        FuzzyNominalConversion.nominal_value,
+    )
+    if module_code:
+        stmt = stmt.where(FuzzyNominalConversion.module_code == module_code)
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.put("/fuzzy/nominal-conversions/{item_id}", response_model=FuzzyNominalConversionRead)
+async def update_fuzzy_nominal_conversion(
+    item_id: int, data: FuzzyNominalConversionUpdate, db: AsyncSession = Depends(get_db)
+):
+    stmt = select(FuzzyNominalConversion).where(FuzzyNominalConversion.id == item_id)
     result = await db.execute(stmt)
     obj = result.scalar_one_or_none()
     if not obj:
-        raise HTTPException(status_code=404, detail="Règle non trouvée")
-    await db.delete(obj)
-    return {"message": "Supprimée"}
+        raise HTTPException(status_code=404, detail="Conversion nominale non trouvée")
+    obj.numeric_value = data.numeric_value
+    await db.flush()
+    await db.refresh(obj)
+    return obj
 
 
 # ===================== Palm N Uptake =====================
@@ -280,7 +325,7 @@ async def delete_fuzzy_rule(item_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/palm-uptake", response_model=list[PalmNUptakeParamRead])
 async def list_palm_uptake_params(db: AsyncSession = Depends(get_db)):
-    stmt = select(PalmNUptakeParam).order_by(PalmNUptakeParam.age_min)
+    stmt = select(PalmNUptakeParam).order_by(PalmNUptakeParam.palm_age)
     result = await db.execute(stmt)
     return result.scalars().all()
 

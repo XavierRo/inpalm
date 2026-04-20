@@ -66,13 +66,20 @@ export const getLeachingParams = () => api.get('/parameters/leaching');
 export const createLeachingParam = (data) => api.post('/parameters/leaching', data);
 export const updateLeachingParam = (id, data) => api.put(`/parameters/leaching/${id}`, data);
 
-export const getFuzzyMemberships = () => api.get('/parameters/fuzzy/membership');
-export const createFuzzyMembership = (data) => api.post('/parameters/fuzzy/membership', data);
-export const updateFuzzyMembership = (id, data) => api.put(`/parameters/fuzzy/membership/${id}`, data);
+export const getFuzzyModules = () => api.get('/parameters/fuzzy/modules');
 
-export const getFuzzyRules = () => api.get('/parameters/fuzzy/rules');
-export const createFuzzyRule = (data) => api.post('/parameters/fuzzy/rules', data);
-export const deleteFuzzyRule = (id) => api.delete(`/parameters/fuzzy/rules/${id}`);
+export const getFuzzyFactors = (moduleCode) =>
+  api.get('/parameters/fuzzy/factors' + (moduleCode ? `?module_code=${moduleCode}` : ''));
+export const updateFuzzyFactor = (id, data) => api.put(`/parameters/fuzzy/factors/${id}`, data);
+
+export const getFuzzyRules = (moduleCode) =>
+  api.get('/parameters/fuzzy/rules' + (moduleCode ? `?module_code=${moduleCode}` : ''));
+export const updateFuzzyRule = (id, data) => api.put(`/parameters/fuzzy/rules/${id}`, data);
+
+export const getFuzzyNominalConversions = (moduleCode) =>
+  api.get('/parameters/fuzzy/nominal-conversions' + (moduleCode ? `?module_code=${moduleCode}` : ''));
+export const updateFuzzyNominalConversion = (id, data) =>
+  api.put(`/parameters/fuzzy/nominal-conversions/${id}`, data);
 
 export const getPalmUptakeParams = () => api.get('/parameters/palm-uptake');
 export const createPalmUptakeParam = (data) => api.post('/parameters/palm-uptake', data);

@@ -7,7 +7,6 @@ from app.models.field import Field
 from app.models.year_field import YearFieldData
 from app.models.fertilization import FertilizationData
 from app.models.parameters import FertilizerProperty
-from app.services.fuzzy_engine import fuzzy_inference
 
 
 async def calc_n_initial_soil(
@@ -45,16 +44,12 @@ async def calc_n_fixation(
     """
     intermediates = {}
 
-    input_values = {
-        "Legume_fraction": year_data.legume_fraction,
-        "Understorey_biomass": year_data.understorey_biomass,
-    }
-
-    n_fixation = await fuzzy_inference(db, "N_fixation", input_values)
+    # TODO: implémenter step4_understorey_fixation (fuzzy)
+    n_fixation = 0.0
 
     intermediates["legume_fraction"] = year_data.legume_fraction
     intermediates["understorey_biomass"] = year_data.understorey_biomass
-    intermediates["fuzzy_output"] = n_fixation
+    intermediates["method"] = "placeholder"
 
     return n_fixation, intermediates
 

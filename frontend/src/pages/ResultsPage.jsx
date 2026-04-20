@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Scale } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Scale, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  AreaChart, Area, PieChart, Pie, Cell,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import PageHeader from '../components/PageHeader';
 import { getSimulationResults } from '../services/api';
@@ -47,16 +47,97 @@ const OUTPUT_LABELS = {
   n_runoff: 'Ruissellement',
 };
 
+const FLUX_LABELS = { ...INPUT_LABELS, ...OUTPUT_LABELS };
+
+// Formatage d'une valeur intermédiaire
+function formatVal(v) {
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'boolean') return v ? 'oui' : 'non';
+  if (typeof v === 'number') return Math.round(v * 1000) / 1000;
+  if (typeof v === 'object') return JSON.stringify(v);
+  return String(v);
+}
+
+// Panneau de détail d'une année (intermediate_results)
+function YearDetail({ intermediates, yr }) {
+  if (!intermediates || Object.keys(intermediates).length === 0) {
+    return <p className="text-xs text-stone-400 italic">Aucun détail intermédiaire disponible.</p>;
+  }
+
+  // On réorganise : entrées puis sorties
+  const fluxOrder = [
+    'n_initial_soil', 'n_fixation', 'n_residues',
+    'n_synthetic_fertilizer', 'n_organic_fertilizer', 'n_atmospheric_deposition',
+    'n_volatilization', 'n_leaching', 'n_palm_uptake',
+    'n_n2o_emission', 'n_nox_emission', 'n_n2_emission', 'n_runoff',
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {fluxOrder.map((fluxKey) => {
+        const data = intermediates[fluxKey];
+        const value = yr[fluxKey];
+        const isInput = fluxKey in INPUT_LABELS;
+        if (!data) return null;
+
+        // Aplatir les détails (ignorer les tableaux de détails pour la lisibilité)
+        const entries = Object.entries(data).filter(
+          ([k, v]) => k !== 'details' && typeof v !== 'object'
+        );
+        const details = data.details;
+
+        return (
+          <div key={fluxKey} className="bg-stone-50 rounded-lg p-3 border border-stone-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-stone-700">
+                {FLUX_LABELS[fluxKey] || fluxKey}
+              </p>
+              <span className={`text-xs font-mono font-bold ${isInput ? 'text-palm-600' : 'text-soil-600'}`}>
+                {isInput ? '+' : '-'}{Math.round((value || 0) * 10) / 10} kg N/ha
+              </span>
+            </div>
+
+            {entries.length > 0 && (
+              <table className="w-full text-xs">
+                <tbody>
+                  {entries.map(([k, v]) => (
+                    <tr key={k} className="border-t border-stone-200 first:border-0">
+                      <td className="py-0.5 text-stone-500 pr-2">{k}</td>
+                      <td className="py-0.5 text-stone-700 font-mono text-right">{formatVal(v)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {/* Détail des apports de fertilisants */}
+            {details && details.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {details.map((d, i) => (
+                  <div key={i} className="text-xs text-stone-500 border-t border-stone-200 pt-1">
+                    {Object.entries(d)
+                      .filter(([, v]) => typeof v !== 'object')
+                      .map(([k, v]) => `${k}: ${formatVal(v)}`)
+                      .join(' · ')}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ResultsPage() {
   const { simulationId } = useParams();
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedYear, setExpandedYear] = useState(null);
 
   useEffect(() => {
-    if (!simulationId) {
-      setLoading(false);
-      return;
-    }
+    if (!simulationId) { setLoading(false); return; }
     getSimulationResults(simulationId)
       .then((res) => setResults(res.data))
       .catch((err) => toast.error(err.response?.data?.detail || 'Erreur'))
@@ -90,20 +171,14 @@ export default function ResultsPage() {
 
   const { simulation, yearly_results, cycle_result } = results;
 
-  // Données pour le graphique barres empilées
   const yearlyChartData = yearly_results.map((yr) => ({
     year: yr.year,
     age: yr.palm_age,
-    ...Object.fromEntries(
-      Object.keys(INPUT_LABELS).map((k) => [`in_${k}`, yr[k]])
-    ),
-    ...Object.fromEntries(
-      Object.keys(OUTPUT_LABELS).map((k) => [`out_${k}`, -yr[k]])
-    ),
+    ...Object.fromEntries(Object.keys(INPUT_LABELS).map((k) => [`in_${k}`, yr[k]])),
+    ...Object.fromEntries(Object.keys(OUTPUT_LABELS).map((k) => [`out_${k}`, -yr[k]])),
     balance: yr.balance,
   }));
 
-  // Données pour les pie charts du cycle complet
   const cycleInputs = cycle_result?.summary?.inputs || {};
   const cycleOutputs = cycle_result?.summary?.outputs || {};
 
@@ -158,11 +233,7 @@ export default function ResultsPage() {
               <Scale className="w-5 h-5 text-sky-500" />
               <p className="text-sm text-stone-500 font-medium">Bilan</p>
             </div>
-            <p
-              className={`text-2xl font-display ${
-                cycle_result.total_balance >= 0 ? 'text-palm-700' : 'text-red-600'
-              }`}
-            >
+            <p className={`text-2xl font-display ${cycle_result.total_balance >= 0 ? 'text-palm-700' : 'text-red-600'}`}>
               {cycle_result.total_balance >= 0 ? '+' : ''}
               {Math.round(cycle_result.total_balance)}{' '}
               <span className="text-sm font-body text-stone-400">kg N/ha</span>
@@ -171,7 +242,7 @@ export default function ResultsPage() {
         </div>
       )}
 
-      {/* Graphique évolution du bilan annuel */}
+      {/* Graphique bilan annuel */}
       <div className="card p-6 mb-6">
         <h2 className="font-display text-lg text-stone-800 mb-4">Bilan azoté annuel (kg N/ha/an)</h2>
         <ResponsiveContainer width="100%" height={350}>
@@ -182,76 +253,41 @@ export default function ResultsPage() {
             <Tooltip
               formatter={(value, name) => [
                 `${Math.abs(Math.round(value * 10) / 10)} kg N/ha`,
-                name.replace('in_', '').replace('out_', ''),
+                name.replace('in_n_', '').replace('out_n_', ''),
               ]}
             />
             <Legend />
-            {/* Entrées (positives) */}
             {Object.entries(INPUT_LABELS).map(([key, label]) => (
-              <Bar
-                key={`in_${key}`}
-                dataKey={`in_${key}`}
-                stackId="inputs"
-                fill={INPUT_COLORS[key]}
-                name={label}
-              />
+              <Bar key={`in_${key}`} dataKey={`in_${key}`} stackId="inputs" fill={INPUT_COLORS[key]} name={label} />
             ))}
-            {/* Sorties (négatives) */}
             {Object.entries(OUTPUT_LABELS).map(([key, label]) => (
-              <Bar
-                key={`out_${key}`}
-                dataKey={`out_${key}`}
-                stackId="outputs"
-                fill={OUTPUT_COLORS[key]}
-                name={label}
-              />
+              <Bar key={`out_${key}`} dataKey={`out_${key}`} stackId="outputs" fill={OUTPUT_COLORS[key]} name={label} />
             ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Pie charts cycle complet */}
+      {/* Pie charts cycle */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="card p-6">
           <h2 className="font-display text-lg text-stone-800 mb-4">Répartition entrées N (cycle)</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={pieInputs}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                innerRadius={50}
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={true}
-              >
-                {pieInputs.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
+              <Pie data={pieInputs} cx="50%" cy="50%" outerRadius={100} innerRadius={50} dataKey="value"
+                label={({ name, value }) => `${name}: ${value}`} labelLine={true}>
+                {pieInputs.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </div>
-
         <div className="card p-6">
           <h2 className="font-display text-lg text-stone-800 mb-4">Répartition sorties N (cycle)</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={pieOutputs}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                innerRadius={50}
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={true}
-              >
-                {pieOutputs.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
+              <Pie data={pieOutputs} cx="50%" cy="50%" outerRadius={100} innerRadius={50} dataKey="value"
+                label={({ name, value }) => `${name}: ${value}`} labelLine={true}>
+                {pieOutputs.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -259,13 +295,15 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* Tableau détaillé */}
+      {/* Tableau détaillé avec lignes expandables */}
       <div className="card p-6">
-        <h2 className="font-display text-lg text-stone-800 mb-4">Détail annuel</h2>
+        <h2 className="font-display text-lg text-stone-800 mb-1">Détail annuel</h2>
+        <p className="text-xs text-stone-400 mb-4">Cliquez sur une ligne pour voir le détail des calculs intermédiaires.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b-2 border-stone-200">
+                <th className="w-6 py-2 px-2" />
                 <th className="text-left py-2 px-2 font-medium text-stone-600">Année</th>
                 <th className="text-left py-2 px-2 font-medium text-stone-600">Âge</th>
                 <th className="text-right py-2 px-2 font-medium text-palm-600">Entrées</th>
@@ -274,26 +312,42 @@ export default function ResultsPage() {
               </tr>
             </thead>
             <tbody>
-              {yearly_results.map((yr) => (
-                <tr key={yr.year} className="border-b border-stone-100 hover:bg-stone-50">
-                  <td className="py-2 px-2 font-mono">{yr.year}</td>
-                  <td className="py-2 px-2 text-stone-500">{yr.palm_age}</td>
-                  <td className="py-2 px-2 text-right text-palm-700 font-medium">
-                    {Math.round(yr.total_inputs * 10) / 10}
-                  </td>
-                  <td className="py-2 px-2 text-right text-soil-700 font-medium">
-                    {Math.round(yr.total_outputs * 10) / 10}
-                  </td>
-                  <td
-                    className={`py-2 px-2 text-right font-bold ${
-                      yr.balance >= 0 ? 'text-palm-600' : 'text-red-600'
-                    }`}
-                  >
-                    {yr.balance >= 0 ? '+' : ''}
-                    {Math.round(yr.balance * 10) / 10}
-                  </td>
-                </tr>
-              ))}
+              {yearly_results.map((yr) => {
+                const isExpanded = expandedYear === yr.year;
+                return (
+                  <>
+                    <tr
+                      key={yr.year}
+                      onClick={() => setExpandedYear(isExpanded ? null : yr.year)}
+                      className="border-b border-stone-100 hover:bg-stone-50 cursor-pointer select-none"
+                    >
+                      <td className="py-2 px-2 text-stone-400">
+                        {isExpanded
+                          ? <ChevronDown className="w-3.5 h-3.5" />
+                          : <ChevronRight className="w-3.5 h-3.5" />}
+                      </td>
+                      <td className="py-2 px-2 font-mono">{yr.year}</td>
+                      <td className="py-2 px-2 text-stone-500">{yr.palm_age}</td>
+                      <td className="py-2 px-2 text-right text-palm-700 font-medium">
+                        {Math.round(yr.total_inputs * 10) / 10}
+                      </td>
+                      <td className="py-2 px-2 text-right text-soil-700 font-medium">
+                        {Math.round(yr.total_outputs * 10) / 10}
+                      </td>
+                      <td className={`py-2 px-2 text-right font-bold ${yr.balance >= 0 ? 'text-palm-600' : 'text-red-600'}`}>
+                        {yr.balance >= 0 ? '+' : ''}{Math.round(yr.balance * 10) / 10}
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${yr.year}-detail`} className="bg-stone-50 border-b border-stone-200">
+                        <td colSpan={6} className="px-4 py-4">
+                          <YearDetail intermediates={yr.intermediate_results} yr={yr} />
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
         </div>

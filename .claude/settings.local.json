@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(PYTHONPATH=backend .venv/Scripts/alembic.exe current)",
+      "Bash(PYTHONPATH=backend .venv/Scripts/alembic.exe history)",
+      "Bash(PYTHONPATH=backend .venv/Scripts/alembic.exe upgrade head)",
+      "Bash(PYTHONPATH=backend .venv/Scripts/alembic.exe stamp 5eba1d605a4e)",
+      "Bash(PYTHONPATH=backend .venv/Scripts/python.exe -c \":*)",
+      "Bash(find D:/data/git/in-palm/backend -name \"*.pyc\" -delete)",
+      "Bash(find D:/data/git/in-palm/backend -name \"__pycache__\" -type d -exec rm -rf {} +)",
+      "Bash(pkill -f \"uvicorn app.main\")",
+      "Bash(cmd.exe /c \"netstat -ano | findstr :8000\")",
+      "Bash(cmd.exe /c \"netstat -ano\")",
+      "Bash(curl:*)"
+    ]
+  }
+}

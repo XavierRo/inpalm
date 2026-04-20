@@ -123,60 +123,83 @@ class LeachingParamRead(LeachingParamBase):
     model_config = {"from_attributes": True}
 
 
-# --- Fuzzy Membership ---
-class FuzzyMembershipBase(BaseModel):
-    variable_name: str
-    linguistic_value: str
-    membership_type: str = "triangular"
-    params: dict
-    output_min: float | None = None
-    output_max: float | None = None
-
-
-class FuzzyMembershipCreate(FuzzyMembershipBase):
-    pass
-
-
-class FuzzyMembershipUpdate(BaseModel):
-    variable_name: str | None = None
-    linguistic_value: str | None = None
-    membership_type: str | None = None
-    params: dict | None = None
-    output_min: float | None = None
-    output_max: float | None = None
-
-
-class FuzzyMembershipRead(FuzzyMembershipBase):
+# --- Fuzzy Module (lecture seule — registre des 11 modules IN-Palm) ---
+class FuzzyModuleRead(BaseModel):
     id: int
-
-    model_config = {"from_attributes": True}
-
-
-# --- Fuzzy Rules ---
-class FuzzyRuleBase(BaseModel):
-    rule_set_name: str
-    conditions: dict
-    output_value: float
-    weight: float = 1.0
+    module_code: str
+    module_name: str
+    step: int
+    report_section: str | None = None
+    output_unit: str | None = None
+    output_min: float | None = None
+    output_max: float | None = None
+    reference: str | None = None
     description: str | None = None
 
-
-class FuzzyRuleCreate(FuzzyRuleBase):
-    pass
+    model_config = {"from_attributes": True}
 
 
-class FuzzyRuleRead(FuzzyRuleBase):
+# --- Fuzzy Factor (limites F/U paramétrables) ---
+class FuzzyFactorRead(BaseModel):
     id: int
+    module_code: str
+    factor_name: str
+    label: str | None = None
+    unit: str | None = None
+    unfav_limit: float
+    fav_limit: float
+    factor_order: int
+    is_intermediate: bool
+    reference: str | None = None
 
     model_config = {"from_attributes": True}
 
 
-# --- Palm N Uptake ---
+class FuzzyFactorUpdate(BaseModel):
+    unfav_limit: float | None = None
+    fav_limit: float | None = None
+
+
+# --- Fuzzy Rule (conclusion paramétrable, conditions immuables) ---
+class FuzzyRuleRead(BaseModel):
+    id: int
+    module_code: str
+    rule_number: int
+    conditions: dict
+    conclusion: float
+    conclusion_label: str | None = None
+    reference: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class FuzzyRuleUpdate(BaseModel):
+    conclusion: float
+
+
+# --- Fuzzy Nominal Conversion (valeur numérique paramétrable) ---
+class FuzzyNominalConversionRead(BaseModel):
+    id: int
+    module_code: str
+    factor_name: str
+    nominal_value: str
+    numeric_value: float
+    reference: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class FuzzyNominalConversionUpdate(BaseModel):
+    numeric_value: float
+
+
+# --- Palm N Uptake (schéma IN-Palm, Pardon 2019 §3 Module 4.1) ---
 class PalmNUptakeParamBase(BaseModel):
-    age_min: int
-    age_max: int
-    n_per_tffb: float
-    vegetative_n_demand: float | None = None
+    palm_age: int
+    yield_unfav_limit: float
+    yield_fav_limit: float
+    n_uptake_low: float
+    n_uptake_high: float
     description: str | None = None
 
 
@@ -185,10 +208,10 @@ class PalmNUptakeParamCreate(PalmNUptakeParamBase):
 
 
 class PalmNUptakeParamUpdate(BaseModel):
-    age_min: int | None = None
-    age_max: int | None = None
-    n_per_tffb: float | None = None
-    vegetative_n_demand: float | None = None
+    yield_unfav_limit: float | None = None
+    yield_fav_limit: float | None = None
+    n_uptake_low: float | None = None
+    n_uptake_high: float | None = None
     description: str | None = None
 
 
