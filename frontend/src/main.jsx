@@ -11,11 +11,13 @@ import FieldDetailPage from './pages/FieldDetailPage';
 import ParametersPage from './pages/ParametersPage';
 import SimulationsPage from './pages/SimulationsPage';
 import ResultsPage from './pages/ResultsPage';
+import Mockup from './pages/Mockup';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
+        <Route path="/mockup" element={<Mockup />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="import" element={<ImportPage />} />
